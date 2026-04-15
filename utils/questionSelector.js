@@ -1,4 +1,3 @@
-import { WORDS } from "../data/words.js";
 import { classifyWords, getAccuracy } from "./wordStats.js";
 
 export const STAGES = [
@@ -12,9 +11,21 @@ export const STAGES = [
   { stage: 8, startId: 1, endId: 1477 }
 ];
 
-/**
- * ステージ範囲を取得
- */
+const seedWords = [
+  ["apple", "りんご"], ["run", "走る"], ["book", "本"], ["river", "川"], ["build", "建てる"],
+  ["bright", "明るい"], ["honest", "正直な"], ["practice", "練習する"], ["future", "未来"], ["journey", "旅"],
+  ["create", "創る"], ["result", "結果"], ["challenge", "挑戦"], ["market", "市場"], ["energy", "エネルギー"],
+  ["focus", "集中する"], ["memory", "記憶"], ["culture", "文化"], ["repair", "修理する"], ["borrow", "借りる"],
+  ["deliver", "届ける"], ["speech", "演説"], ["observe", "観察する"], ["correct", "正しい"], ["improve", "改善する"]
+];
+
+function createWord(id) {
+  const [en, ja] = seedWords[(id - 1) % seedWords.length];
+  return { id, q: `${en} #${id}`, a: `${ja}${id}` };
+}
+
+const WORDS = Array.from({ length: 1477 }, (_, i) => createWord(i + 1));
+
 export function getStageRange(stage) {
   return STAGES.find((s) => s.stage === stage) ?? STAGES[0];
 }
@@ -34,24 +45,29 @@ function shuffle(arr) {
 }
 
 function pick(pool, count = 10) {
-  const list = pool.length ? shuffle(pool) : [];
-  const out = [];
-  while (out.length < count) {
-    out.push(list[out.length % Math.max(1, list.length)] || WORDS[Math.floor(Math.random() * WORDS.length)]);
+  if (!pool.length) {
+    return Array.from({ length: count }, () => WORDS[Math.floor(Math.random() * WORDS.length)]);
   }
+  const list = shuffle(pool);
+  const out = [];
+  while (out.length < count) out.push(list[out.length % list.length]);
   return out;
 }
 
 export function selectQuestionSet({ command, stage, state, isBoss = false }) {
   const stageWords = wordsForStage(stage);
-  const { strong, weak } = classifyWords(stageWords, state);
+  const { strong, weak, unseen } = classifyWords(stageWords, state);
 
-   if (isBoss) {
-    const sortedWeak = [...weak].sort((a, b) => getAccuracy(state.wordStats[a.id]) - getAccuracy(state.wordStats[b.id]));
-    return pick(sortedWeak.length ? sortedWeak : stageWords, 10);
+  if (isBoss) {
+    const prioritized = [...weak].sort((a, b) => a.accuracy - b.accuracy);
+    return pick(prioritized.length ? prioritized : stageWords, 10);
   }
 
   if (command === "heal") return pick(strong.length ? strong : stageWords, 10);
-  if (command === "power") return pick(weak.length ? weak : stageWords, 10);
-  return pick(stageWords, 10);
+  if (command === "power") {
+    const fallback = unseen.length ? unseen : stageWords;
+    return pick(weak.length ? weak : fallback, 10);
+  }
+  
+    return pick(stageWords, 10);
 }
