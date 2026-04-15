@@ -1,6 +1,7 @@
+// 修正前（NG）
 import { filterWordsByStage } from "../systems/questionSelector.js";
-import { WORDS } from "../data/words.js";
 import { gameState } from "../state/gameState.js";
 
-// ステージに応じた単語を取得
-const stageWords = filterWordsByStage(WORDS, gameState.stage);
+// 修正後（OK）
+import { filterWordsByStage } from "../utils/questionSelector.js";
+import { gameState } from "../gameState.js";
