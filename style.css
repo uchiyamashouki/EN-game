@@ -1,1 +1,93 @@
-
+:root {
+  color-scheme: dark;
+}
+body {
+  margin: 0;
+  font-family: "Noto Sans JP", system-ui, sans-serif;
+  background: radial-gradient(circle at top, #253350, #111);
+  color: #f1f3f9;
+}
+#app {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.panel {
+  border: 3px solid #8dc3ff;
+  border-radius: 12px;
+  background: rgba(12, 20, 30, 0.9);
+  padding: 18px;
+}
+.hud {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.arena {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 220px;
+  border: 1px dashed #4f6481;
+  margin: 10px 0;
+  padding: 12px;
+}
+.actor {
+  font-size: 88px;
+  width: 45%;
+  text-align: center;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+button {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #4d8ef5;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+button:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
+.log {
+  min-height: 40px;
+  background: #050a12;
+  border: 1px solid #37537f;
+  padding: 8px;
+}
+.inventory {
+  margin-top: 12px;
+  border-top: 1px solid #304f73;
+  padding-top: 8px;
+}
+.quiz-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: grid;
+  place-items: center;
+}
+.quiz-card {
+  width: 320px;
+  background: #0d1524;
+  border: 2px solid #7aa1d8;
+  border-radius: 10px;
+  padding: 16px;
+}
+.quiz-card input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+}
+ul {
+  max-height: 220px;
+  overflow: auto;
+}
