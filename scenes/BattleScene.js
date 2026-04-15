@@ -211,4 +211,3 @@ export class BattleScene {
     this.root.querySelector("#log").textContent = text;
   }
 }
-  }
