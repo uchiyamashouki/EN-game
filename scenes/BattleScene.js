@@ -1,6 +1,16 @@
-import { ENEMIES } from "../data/enemies.js";
 import { selectQuestionSet, wordsForStage } from "../utils/questionSelector.js";
 import { recordAnswer, stageCoverage } from "../utils/wordStats.js";
+
+const ENEMIES = {
+  normal: [
+    { name: "スライム", hp: 55, art: "🟢" },
+    { name: "ゴブリン", hp: 65, art: "👹" },
+    { name: "バット", hp: 50, art: "🦇" }
+  ],
+  boss: [
+    { name: "語彙ドラゴン", hp: 130, art: "🐉" }
+  ]
+};
 
 const COMMANDS = {
   attack: { label: "攻撃", base: 12 },
@@ -43,7 +53,7 @@ export class BattleScene {
         <div class="arena">
           <div class="actor player">🧑‍🎓</div>
           <div class="actor enemy">
-            <img id="enemy-art" class="enemy-sprite" alt="enemy sprite" src="${enemy.art}" />
+            <div id="enemy-art" class="enemy-sprite">${enemy.art}</div>
             <div id="enemy-name">${enemy.name}</div>
           </div>
         </div>
@@ -177,7 +187,7 @@ export class BattleScene {
 
   updateEnemyVisual() {
     this.state.enemyHp = this.enemy.maxHp;
-    this.root.querySelector("#enemy-art").src = this.enemy.art;
+    this.root.querySelector("#enemy-art").textContent = this.enemy.art;
     this.root.querySelector("#enemy-name").textContent = this.enemy.name;
     this.updateHud();
   }
