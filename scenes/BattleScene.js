@@ -84,3 +84,131 @@ export class BattleScene {
     const pick = list[Math.floor(Math.random() * list.length)];
     return { ...pick, maxHp: pick.hp + (this.state.stage - 1) * 5, isBoss };
   }
+
+  async playerTurn(command) {
+    if (this.state.playerHp <= 0 || this.state.enemyHp <= 0) return;
+    const questions = selectQuestionSet({ command, stage: this.state.stage, state: this.state, isBoss: this.enemy?.isBoss });
+
+    let correct = 0;
+    for (const q of questions) {
+      const answer = await this.askQuestion(q);
+      const ok = answer.trim() === q.a;
+      recordAnswer(this.state, q.id, ok);
+      if (ok) correct += 1;
+    }
+
+    const power = COMMANDS[command].base;
+    const amount = Math.round(power * (correct / 10));
+    if (command === "heal") {
+      this.state.playerHp = Math.min(this.state.maxHp, this.state.playerHp + amount);
+      this.writeLog(`${COMMANDS[command].label}: ${correct}/10正解。${amount}回復。`);
+    } else {
+      this.state.enemyHp = Math.max(0, this.state.enemyHp - amount);
+      this.writeLog(`${COMMANDS[command].label}: ${correct}/10正解。${amount}ダメージ。`);
+    }
+    this.state.turns += 1;
+    this.updateHud();
+
+    if (this.state.enemyHp <= 0) {
+      const gain = moneyByTurns(this.state.turns);
+      this.state.money += gain;
+      const item = dropItem();
+      if (item) this.state.inventory.push(item);
+      this.navigate("result", { win: true, gain, item, boss: this.enemy.isBoss });
+      return;
+    }
+
+    this.enemyTurn();
+  }
+
+  enemyTurn() {
+    const guard = this.state.inventory.find((i) => i.type === "guard" && !i.used);
+    const base = this.enemy.isBoss ? 20 : 12;
+    const damage = Math.round(base * (guard ? guard.value : 1));
+    if (guard) guard.used = true;
+
+    this.state.playerHp = Math.max(0, this.state.playerHp - damage);
+    this.writeLog(`${this.enemy.name}の攻撃！ ${damage}ダメージ。`);
+    this.updateHud();
+
+    if (this.state.playerHp <= 0) {
+      this.state.money = Math.floor(this.state.money / 2);
+      this.navigate("result", { win: false, loseMoney: true });
+    }
+  }
+
+  askQuestion(q) {
+    return new Promise((resolve) => {
+      const modal = document.createElement("div");
+      modal.className = "quiz-modal";
+      modal.innerHTML = `
+        <div class="quiz-card">
+          <h3>${q.q}</h3>
+          <p>日本語を入力（6秒）</p>
+          <input id="ans" autocomplete="off" />
+          <div>残り: <span id="timer">6</span>秒</div>
+          <button id="submit">決定</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      const input = modal.querySelector("#ans");
+      const timer = modal.querySelector("#timer");
+      input.focus();
+
+      let remaining = 6;
+      const done = (value) => {
+        clearInterval(interval);
+        modal.remove();
+        resolve(value || "");
+      };
+
+      const interval = setInterval(() => {
+        remaining -= 1;
+        timer.textContent = String(remaining);
+        if (remaining <= 0) done("");
+      }, 1000);
+
+      modal.querySelector("#submit").addEventListener("click", () => done(input.value));
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") done(input.value);
+      });
+    });
+  }
+
+  updateEnemyVisual() {
+    this.state.enemyHp = this.enemy.maxHp;
+    this.root.querySelector("#enemy-art").src = this.enemy.art;
+    this.root.querySelector("#enemy-name").textContent = this.enemy.name;
+    this.updateHud();
+  }
+
+  renderInventory() {
+    const box = this.root.querySelector("#inventory");
+    const items = this.state.inventory.filter((i) => !i.used);
+    box.innerHTML = `<h4>ドロップアイテム</h4>${items.length ? "" : "なし"}`;
+    items.forEach((item) => {
+      const btn = document.createElement("button");
+      btn.textContent = `${item.name}を使う`;
+      btn.addEventListener("click", () => {
+        if (item.type === "heal") {
+          this.state.playerHp = Math.min(this.state.maxHp, this.state.playerHp + item.value);
+          item.used = true;
+          this.writeLog(`${item.name}で${item.value}回復（ターン消費なし）`);
+          this.updateHud();
+          this.renderInventory();
+        }
+      });
+      box.appendChild(btn);
+    });
+  }
+
+  updateHud() {
+    this.root.querySelector("#player-hp").textContent = `${this.state.playerHp}/${this.state.maxHp}`;
+    this.root.querySelector("#enemy-hp").textContent = `${this.state.enemyHp ?? this.enemy.maxHp}/${this.enemy.maxHp}`;
+  }
+
+  writeLog(text) {
+    this.root.querySelector("#log").textContent = text;
+  }
+}
+  }
