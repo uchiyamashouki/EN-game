@@ -38,6 +38,22 @@ body {
   width: 45%;
   text-align: center;
 }
+.enemy {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+}
+.enemy-sprite {
+  width: 144px;
+  height: 96px;
+  image-rendering: pixelated;
+  background: #0c1522;
+  border: 2px solid #4f6481;
+  border-radius: 8px;
+}
+#enemy-name {
+  font-size: 16px;
+}
 .actions {
   display: flex;
   flex-wrap: wrap;
