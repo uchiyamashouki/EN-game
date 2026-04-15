@@ -16,25 +16,24 @@ export function getAccuracy(stat) {
   return stat.correct / stat.total;
 }
 
-export function getWordAccuracy(state, wordId) {
-  return getAccuracy(state.wordStats[wordId]);
-}
-
 export function classifyWords(words, state) {
   const strong = [];
   const weak = [];
+  const unseen = [];
 
   for (const word of words) {
     const stat = state.wordStats[word.id];
-    const acc = getAccuracy(stat);
-    if (!stat || stat.total === 0 || acc < 0.6) {
-      weak.push({ ...word, accuracy: acc });
-    } else {
-      strong.push({ ...word, accuracy: acc });
+    if (!stat || stat.total === 0) {
+      unseen.push({ ...word, accuracy: 0 });
+      continue;
     }
+    
+    const acc = getAccuracy(stat);
+    if (acc >= 0.6) strong.push({ ...word, accuracy: acc });
+    else weak.push({ ...word, accuracy: acc });
   }
 
-  return { strong, weak };
+  return { strong, weak, unseen };
 }
 
 export function stageCoverage(stageWords, state) {
