@@ -18,6 +18,10 @@ const COMMANDS = {
   power: { label: "強攻撃", base: 20 }
 };
 
+const PLAYER_CRIT_RATE = 0.14;
+const ENEMY_CRIT_RATE = 0.12;
+const CRIT_MULTIPLIER = 2.2;
+
 function moneyByTurns(turns) {
   return Math.max(1, Math.min(15, 16 - turns));
 }
@@ -26,6 +30,7 @@ function dropItem() {
   const r = Math.random();
   if (r < 0.22) return { name: "パン", type: "heal", value: 22 };
   if (r < 0.33) return { name: "木の盾", type: "guard", value: 0.6 };
+  if (r < 0.43) return { name: "増強剤", type: "boost", value: 2 };
   return null;
 }
 
@@ -59,6 +64,10 @@ export class BattleScene {
           <div class="battle-fx-layer" id="battle-fx-layer"></div>
         </div>
         <div class="log" id="log">敵とエンカウント！ ${enemy.name} が現れた。</div>
+        <div class="turn-report" id="turn-report">
+          <div id="player-report">プレイヤー行動: -</div>
+          <div id="enemy-report">敵行動: -</div>
+        </div>
         <div class="actions">
           <button data-cmd="attack">攻撃</button>
           <button data-cmd="heal">回復</button>
@@ -71,7 +80,10 @@ export class BattleScene {
       </div>
     `;
 
-    this.enemy = enemy;
+    this.enemy = enemy;    
+    this.state.activeEffects ||= {};
+    this.state.activeEffects.playerAttackBoostTurns ||= 0;
+    this.state.activeEffects.playerGuardTurns ||= 0;
     this.updateHud();
     this.renderInventory();
 
@@ -109,14 +121,27 @@ export class BattleScene {
     }
 
     const power = COMMANDS[command].base;
-    const amount = Math.round(power * (correct / 10));
+    const baseAmount = Math.round(power * (correct / 10));
+    const hasBoost = command !== "heal" && this.state.activeEffects.playerAttackBoostTurns > 0;
+    if (hasBoost) this.state.activeEffects.playerAttackBoostTurns -= 1;
+
+    const boostedAmount = hasBoost ? baseAmount * 2 : baseAmount;
+    const critical = command !== "heal" && Math.random() < PLAYER_CRIT_RATE;
+    const amount = critical ? Math.round(boostedAmount * CRIT_MULTIPLIER) : boostedAmount;
+
     if (command === "heal") {
+      const beforeHp = this.state.playerHp;
       this.state.playerHp = Math.min(this.state.maxHp, this.state.playerHp + amount);
-      this.writeLog(`${COMMANDS[command].label}: ${correct}/10正解。${amount}回復。`);
+      const healed = this.state.playerHp - beforeHp;
+      this.writeLog(`${COMMANDS[command].label}: ${correct}/10正解。${healed}回復。`);
+      this.updateTurnReport("player", `${COMMANDS[command].label}で${healed}回復`)
       this.playBattleEffect("heal", "player");
     } else {
       this.state.enemyHp = Math.max(0, this.state.enemyHp - amount);
-      this.writeLog(`${COMMANDS[command].label}: ${correct}/10正解。${amount}ダメージ。`);
+      const critText = critical ? " 会心の一撃！" : "";
+      const boostText = hasBoost ? " 増強剤で威力2倍！" : "";
+      this.writeLog(`${COMMANDS[command].label}: ${correct}/10正解。${amount}ダメージ。${critText}${boostText}`);
+      this.updateTurnReport("player", `${COMMANDS[command].label}で${amount}ダメージ${critical ? "（会心）" : ""}`);
       this.playBattleEffect("attack", "enemy");
     }
     this.state.turns += 1;
@@ -135,13 +160,16 @@ export class BattleScene {
   }
 
   enemyTurn() {
-    const guard = this.state.inventory.find((i) => i.type === "guard" && !i.used);
+    const guarded = this.state.activeEffects.playerGuardTurns > 0;
     const base = this.enemy.isBoss ? 20 : 12;
-    const damage = Math.round(base * (guard ? guard.value : 1));
-    if (guard) guard.used = true;
+    const boosted = Math.random() < ENEMY_CRIT_RATE;
+    const critDamage = boosted ? Math.round(base * CRIT_MULTIPLIER) : base;
+    const damage = Math.round(critDamage * (guarded ? 0.6 : 1));
+    if (guarded) this.state.activeEffects.playerGuardTurns -= 1;
 
     this.state.playerHp = Math.max(0, this.state.playerHp - damage);
-    this.writeLog(`${this.enemy.name}の攻撃！ ${damage}ダメージ。`);
+    this.writeLog(`${this.enemy.name}の攻撃！ ${damage}ダメージ。${boosted ? " 痛恨の一撃！" : ""}${guarded ? " 木の盾で軽減！" : ""}`);
+    this.updateTurnReport("enemy", `${this.enemy.name}から${damage}ダメージ${boosted ? "（痛恨）" : ""}`);
     this.playBattleEffect("hit", "player");
     this.updateHud();
 
@@ -248,12 +276,25 @@ export class BattleScene {
       btn.textContent = `${item.name}を使う`;
       btn.addEventListener("click", () => {
         if (item.type === "heal") {
+          const beforeHp = this.state.playerHp;
           this.state.playerHp = Math.min(this.state.maxHp, this.state.playerHp + item.value);
-          item.used = true;
-          this.writeLog(`${item.name}で${item.value}回復（ターン消費なし）`);
-          this.updateHud();
-          this.renderInventory();
+          const healed = this.state.playerHp - beforeHp;
+          this.writeLog(`${item.name}で${healed}回復（ターン消費なし）`);
+          this.updateTurnReport("player", `${item.name}で${healed}回復`);
         }
+        if (item.type === "guard") {
+          this.state.activeEffects.playerGuardTurns = 1;
+          this.writeLog(`${item.name}を使用。次の敵攻撃を軽減（ターン消費なし）`);
+          this.updateTurnReport("player", `${item.name}で次の被ダメ軽減`);
+        }
+        if (item.type === "boost") {
+          this.state.activeEffects.playerAttackBoostTurns = 1;
+          this.writeLog(`${item.name}を使用。次の攻撃ダメージ2倍（ターン消費なし）`);
+          this.updateTurnReport("player", `${item.name}で次の攻撃2倍`);
+        }
+        item.used = true;
+        this.updateHud();
+        this.renderInventory();
       });
       box.appendChild(btn);
     });
@@ -266,6 +307,12 @@ export class BattleScene {
 
   writeLog(text) {
     this.root.querySelector("#log").textContent = text;
+  }
+
+  updateTurnReport(side, text) {
+    const id = side === "enemy" ? "#enemy-report" : "#player-report";
+    const target = this.root.querySelector(id);
+    if (target) target.textContent = `${side === "enemy" ? "敵行動" : "プレイヤー行動"}: ${text}`;
   }
 
   playBattleEffect(type, target) {
