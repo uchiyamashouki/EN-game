@@ -102,7 +102,7 @@ export class BattleScene {
     let correct = 0;
     for (const q of questions) {
       const answer = await this.askQuestion(q);
-      const ok = answer.trim() === q.a;
+      const ok = answer.trim() === String(q.a ?? "").trim();
       recordAnswer(this.state, q.id, ok);
       if (ok) correct += 1;
     }
@@ -153,34 +153,56 @@ export class BattleScene {
       modal.className = "quiz-modal";
       modal.innerHTML = `
         <div class="quiz-card">
-          <h3>${q.q}</h3>
+          <h3>英単語: ${q.word ?? q.q}</h3>
+          <p>${q.example ? `例文: ${q.example}` : ""}</p>
           <p>日本語を入力（6秒）</p>
           <input id="ans" autocomplete="off" />
           <div>残り: <span id="timer">6</span>秒</div>
           <button id="submit">決定</button>
+          <p id="feedback"></p>
+          <button id="next" style="display:none;">次へ</button>
         </div>
       `;
       document.body.appendChild(modal);
       const input = modal.querySelector("#ans");
       const timer = modal.querySelector("#timer");
+      const feedback = modal.querySelector("#feedback");
+      const nextBtn = modal.querySelector("#next");
+      const submitBtn = modal.querySelector("#submit");
       input.focus();
 
       let remaining = 6;
-      const done = (value) => {
+      const close = (value) => {
         clearInterval(interval);
         modal.remove();
         resolve(value || "");
       };
 
+            const revealAnswer = (value) => {
+        clearInterval(interval);
+        const userAnswer = value?.trim() ?? "";
+        const correctAnswer = String(q.a ?? "").trim();
+        const ok = userAnswer === correctAnswer;
+
+        feedback.textContent = ok
+          ? `正解！ 正答: ${correctAnswer}`
+          : `不正解。正答: ${correctAnswer}`;
+        submitBtn.style.display = "none";
+        input.disabled = true;
+        nextBtn.style.display = "inline-block";
+        nextBtn.focus();
+        nextBtn.onclick = () => close(value);
+      };
+
       const interval = setInterval(() => {
         remaining -= 1;
         timer.textContent = String(remaining);
-        if (remaining <= 0) done("");
+        if (remaining <= 0) revealAnswer("");
       }, 1000);
 
-      modal.querySelector("#submit").addEventListener("click", () => done(input.value));
+      modal.querySelector("#submit").addEventListener("click", () => revealAnswer(input.value));
       input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") done(input.value);
+        if (e.key === "Enter") revealAnswer(input.value);
       });
     });
   }
