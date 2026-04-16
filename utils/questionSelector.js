@@ -40,6 +40,21 @@ function pick(pool, count = 10) {
   return out;
 }
 
+function pickPrioritizedByAnswerCount(pool, state, count = 10) {
+  if (!pool.length) {
+    return Array.from({ length: count }, () => WORDS[Math.floor(Math.random() * WORDS.length)]);
+  }
+
+  const prioritized = [...pool]
+    .map((word) => ({ word, total: state.wordStats[word.id]?.total ?? 0, tie: Math.random() }))
+    .sort((a, b) => (a.total - b.total) || (a.tie - b.tie))
+    .map(({ word }) => word);
+
+  const out = [];
+  while (out.length < count) out.push(prioritized[out.length % prioritized.length]);
+  return out;
+}
+
 export function selectQuestionSet({ command, stage, state, isBoss = false }) {
   const stageWords = wordsForStage(stage);
   const { strong, weak, unseen } = classifyWords(stageWords, state);
@@ -55,5 +70,9 @@ export function selectQuestionSet({ command, stage, state, isBoss = false }) {
     return pick(weak.length ? weak : fallback, 10);
   }
   
-    return pick(stageWords, 10);
+  if (command === "attack") {
+    return pickPrioritizedByAnswerCount(stageWords, state, 10);
+  }
+
+  return pick(stageWords, 10);
 }
