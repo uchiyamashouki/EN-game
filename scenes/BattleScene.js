@@ -176,23 +176,29 @@ export class BattleScene {
       input.focus();
 
       let remaining = 9;
+      let finished = false;
       const close = (value) => {
+        if (finished) return;
+        finished = true;
         clearInterval(interval);
         modal.remove();
         resolve(value || "");
       };
 
-            const revealAnswer = (value) => {
+      const revealAnswer = (value, reason = "submit") => {
+        if (finished) return;
         clearInterval(interval);
         const userAnswer = value?.trim() ?? "";
         const correctAnswer = String(q.a ?? "").trim();
         const ok = userAnswer === correctAnswer;
+        const timeoutLikeFail = !ok && (reason === "timeout" || reason === "submit");
 
         feedback.textContent = ok
           ? `正解！ 正答: ${correctAnswer}`
-          : `不正解。正答: ${correctAnswer}`;
+          : `時間切れ！ 正答: ${correctAnswer}`;
         feedback.className = ok ? "feedback success" : "feedback fail";
         this.playQuizEffect(ok ? "success" : "fail", modal.querySelector(".quiz-card"));
+        if (timeoutLikeFail) timer.textContent = "0";
         submitBtn.style.display = "none";
         input.disabled = true;
         nextBtn.style.display = "inline-block";
@@ -203,12 +209,12 @@ export class BattleScene {
       const interval = setInterval(() => {
         remaining -= 1;
         timer.textContent = String(remaining);
-        if (remaining <= 0) revealAnswer("");
+        if (remaining <= 0) revealAnswer("", "timeout");
       }, 1000);
 
-      modal.querySelector("#submit").addEventListener("click", () => revealAnswer(input.value));
+      modal.querySelector("#submit").addEventListener("click", () => revealAnswer(input.value, "submit"));
       input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") revealAnswer(input.value);
+        if (e.key === "Enter") revealAnswer(input.value, "submit");
       });
     });
   }
