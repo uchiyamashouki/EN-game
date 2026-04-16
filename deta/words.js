@@ -1471,11 +1471,22 @@ const seedWords = [
 ];
 
 function createWord(id) {
-  const [en, ja] = seedWords[(id - 1) % seedWords.length];
+  const row = seedWords[(id - 1) % seedWords.length];
+
+  // 3要素: [例文, 英単語, 日本語] / 2要素: [英語, 日本語]
+  const [first, second, third] = row;
+  const hasExample = row.length >= 3;
+
+  const example = hasExample ? first : "";
+  const word = hasExample ? second : first;
+  const answer = hasExample ? third : second;
+
   return {
     id,
-    q: `${en} #${id}`,
-    a: `${ja}${id}`
+    word,
+    example,
+    q: word,
+    a: answer
   };
 }
 
