@@ -1,4 +1,5 @@
-import { classifyWords, getAccuracy } from "./wordStats.js";
+import { classifyWords } from "./wordStats.js";
+import { WORDS } from "../deta/words.js";
 
 export const STAGES = [
   { stage: 1, startId: 1, endId: 200 },
@@ -10,21 +11,6 @@ export const STAGES = [
   { stage: 7, startId: 1201, endId: 1477 },
   { stage: 8, startId: 1, endId: 1477 }
 ];
-
-const seedWords = [
-  ["apple", "りんご"], ["run", "走る"], ["book", "本"], ["river", "川"], ["build", "建てる"],
-  ["bright", "明るい"], ["honest", "正直な"], ["practice", "練習する"], ["future", "未来"], ["journey", "旅"],
-  ["create", "創る"], ["result", "結果"], ["challenge", "挑戦"], ["market", "市場"], ["energy", "エネルギー"],
-  ["focus", "集中する"], ["memory", "記憶"], ["culture", "文化"], ["repair", "修理する"], ["borrow", "借りる"],
-  ["deliver", "届ける"], ["speech", "演説"], ["observe", "観察する"], ["correct", "正しい"], ["improve", "改善する"]
-];
-
-function createWord(id) {
-  const [en, ja] = seedWords[(id - 1) % seedWords.length];
-  return { id, q: `${en} #${id}`, a: `${ja}${id}` };
-}
-
-const WORDS = Array.from({ length: 1477 }, (_, i) => createWord(i + 1));
 
 export function getStageRange(stage) {
   return STAGES.find((s) => s.stage === stage) ?? STAGES[0];
