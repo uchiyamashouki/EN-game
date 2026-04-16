@@ -51,11 +51,12 @@ export class BattleScene {
           <div>敵HP: <span id="enemy-hp"></span></div>
         </div>
         <div class="arena">
-          <div class="actor player">🧑‍🎓</div>
+          <div class="actor player" id="player-actor">🧑‍🎓</div>
           <div class="actor enemy">
             <div id="enemy-art" class="enemy-sprite">${enemy.art}</div>
             <div id="enemy-name">${enemy.name}</div>
           </div>
+         <div class="battle-fx-layer" id="battle-fx-layer"></div>
         </div>
         <div class="log" id="log">敵とエンカウント！ ${enemy.name} が現れた。</div>
         <div class="actions">
@@ -112,9 +113,11 @@ export class BattleScene {
     if (command === "heal") {
       this.state.playerHp = Math.min(this.state.maxHp, this.state.playerHp + amount);
       this.writeLog(`${COMMANDS[command].label}: ${correct}/10正解。${amount}回復。`);
+      this.playBattleEffect("heal", "player");
     } else {
       this.state.enemyHp = Math.max(0, this.state.enemyHp - amount);
       this.writeLog(`${COMMANDS[command].label}: ${correct}/10正解。${amount}ダメージ。`);
+      this.playBattleEffect("attack", "enemy");
     }
     this.state.turns += 1;
     this.updateHud();
@@ -139,6 +142,7 @@ export class BattleScene {
 
     this.state.playerHp = Math.max(0, this.state.playerHp - damage);
     this.writeLog(`${this.enemy.name}の攻撃！ ${damage}ダメージ。`);
+    this.playBattleEffect("hit", "player");
     this.updateHud();
 
     if (this.state.playerHp <= 0) {
@@ -187,6 +191,8 @@ export class BattleScene {
         feedback.textContent = ok
           ? `正解！ 正答: ${correctAnswer}`
           : `不正解。正答: ${correctAnswer}`;
+        feedback.className = ok ? "feedback success" : "feedback fail";
+        this.playQuizEffect(ok ? "success" : "fail", modal.querySelector(".quiz-card"));
         submitBtn.style.display = "none";
         input.disabled = true;
         nextBtn.style.display = "inline-block";
@@ -241,5 +247,32 @@ export class BattleScene {
 
   writeLog(text) {
     this.root.querySelector("#log").textContent = text;
+  }
+
+  playBattleEffect(type, target) {
+    const layer = this.root.querySelector("#battle-fx-layer");
+    const targetEl = target === "player"
+      ? this.root.querySelector("#player-actor")
+      : this.root.querySelector("#enemy-art");
+    if (!layer || !targetEl) return;
+
+    targetEl.classList.remove("fx-pulse-hit", "fx-pulse-heal", "fx-pulse-attack");
+    void targetEl.offsetWidth;
+
+    const fx = document.createElement("div");
+    fx.className = `battle-fx fx-${type} fx-on-${target}`;
+    layer.appendChild(fx);
+    fx.addEventListener("animationend", () => fx.remove(), { once: true });
+
+    if (type === "hit") targetEl.classList.add("fx-pulse-hit");
+    if (type === "heal") targetEl.classList.add("fx-pulse-heal");
+    if (type === "attack") targetEl.classList.add("fx-pulse-attack");
+  }
+
+  playQuizEffect(type, quizCard) {
+    if (!quizCard) return;
+    quizCard.classList.remove("quiz-success", "quiz-fail");
+    void quizCard.offsetWidth;
+    quizCard.classList.add(type === "success" ? "quiz-success" : "quiz-fail");
   }
 }
