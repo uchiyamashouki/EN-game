@@ -15,7 +15,7 @@ const ENEMIES = {
 const COMMANDS = {
   attack: { label: "攻撃", base: 20 },
   heal: { label: "回復", base: 35 },
-  power: { label: "強攻撃", base: 20 }
+  power: { label: "強攻撃", base: 35 }
 };
 
 const PLAYER_CRIT_RATE = 0.14;
