@@ -24,6 +24,17 @@ body {
   gap: 8px;
   margin-bottom: 10px;
 }
+.stage-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.stage-nav select {
+  min-width: 88px;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
 .arena {
   position: relative;
   display: flex;
