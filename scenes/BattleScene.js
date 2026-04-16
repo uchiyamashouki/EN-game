@@ -56,7 +56,7 @@ export class BattleScene {
             <div id="enemy-art" class="enemy-sprite">${enemy.art}</div>
             <div id="enemy-name">${enemy.name}</div>
           </div>
-         <div class="battle-fx-layer" id="battle-fx-layer"></div>
+          <div class="battle-fx-layer" id="battle-fx-layer"></div>
         </div>
         <div class="log" id="log">敵とエンカウント！ ${enemy.name} が現れた。</div>
         <div class="actions">
