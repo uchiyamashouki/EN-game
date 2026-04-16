@@ -25,6 +25,7 @@ body {
   margin-bottom: 10px;
 }
 .arena {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -33,7 +34,15 @@ body {
   margin: 10px 0;
   padding: 12px;
 }
+.battle-fx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
 .actor {
+  position: relative;
+  z-index: 1;
   font-size: 88px;
   width: 45%;
   text-align: center;
@@ -59,22 +68,7 @@ body {
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 12px 0;
-}
-button {
-  border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #4d8ef5;
-  color: #fff;
-  font-weight: 700;
-  cursor: pointer;
-}
-button:disabled {
-  background: #555;
-  cursor: not-allowed;
-}
+@@ -78,34 +87,125 @@ button:disabled {
 .log {
   min-height: 40px;
   background: #050a12;
@@ -100,10 +94,101 @@ button:disabled {
   border-radius: 10px;
   padding: 16px;
 }
+.feedback {
+  min-height: 1.4em;
+  font-weight: 700;
+}
+.feedback.success {
+  color: #7dffae;
+  text-shadow: 0 0 12px rgba(86, 255, 155, 0.65);
+}
+.feedback.fail {
+  color: #ff9b9b;
+  text-shadow: 0 0 12px rgba(255, 122, 122, 0.6);
+}
 .quiz-card input {
   width: 100%;
   margin-bottom: 10px;
   padding: 8px;
+}
+.battle-fx {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 999px;
+  animation: fx-pop 420ms ease-out forwards;
+}
+.fx-on-player {
+  left: 12%;
+  top: 28%;
+}
+.fx-on-enemy {
+  right: 12%;
+  top: 28%;
+}
+.fx-attack {
+  border: 3px solid rgba(255, 210, 80, 0.92);
+  box-shadow: 0 0 30px rgba(255, 180, 60, 0.75);
+}
+.fx-hit {
+  border: 3px solid rgba(255, 92, 92, 0.92);
+  box-shadow: 0 0 30px rgba(255, 70, 70, 0.75);
+}
+.fx-heal {
+  border: 3px solid rgba(110, 255, 170, 0.95);
+  box-shadow: 0 0 32px rgba(80, 255, 160, 0.75);
+}
+.fx-pulse-hit {
+  animation: pulse-hit 260ms ease-out 1;
+}
+.fx-pulse-heal {
+  animation: pulse-heal 360ms ease-out 1;
+}
+.fx-pulse-attack {
+  animation: pulse-attack 300ms ease-out 1;
+}
+.quiz-success {
+  animation: quiz-success 380ms ease-out 1;
+}
+.quiz-fail {
+  animation: quiz-fail 340ms ease-out 1;
+}
+@keyframes fx-pop {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+@keyframes pulse-hit {
+  0% { transform: translateX(0) scale(1); filter: brightness(1); }
+  30% { transform: translateX(-8px) scale(1.08); filter: brightness(1.7); }
+  65% { transform: translateX(8px) scale(0.98); }
+  100% { transform: translateX(0) scale(1); filter: brightness(1); }
+}
+@keyframes pulse-heal {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.15); filter: brightness(1.8) hue-rotate(15deg); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+@keyframes pulse-attack {
+  0% { transform: translateX(0) scale(1); filter: brightness(1); }
+  40% { transform: translateX(10px) scale(1.12); filter: brightness(1.6); }
+  100% { transform: translateX(0) scale(1); filter: brightness(1); }
+}
+@keyframes quiz-success {
+  0% { box-shadow: 0 0 0 rgba(95, 255, 170, 0); transform: scale(1); }
+  45% { box-shadow: 0 0 26px rgba(95, 255, 170, 0.65); transform: scale(1.03); }
+  100% { box-shadow: 0 0 0 rgba(95, 255, 170, 0); transform: scale(1); }
+}
+@keyframes quiz-fail {
+  0% { transform: translateX(0); box-shadow: 0 0 0 rgba(255, 98, 98, 0); }
+  30% { transform: translateX(-7px); box-shadow: 0 0 20px rgba(255, 98, 98, 0.62); }
+  60% { transform: translateX(7px); }
+  100% { transform: translateX(0); box-shadow: 0 0 0 rgba(255, 98, 98, 0); }
 }
 ul {
   max-height: 220px;
