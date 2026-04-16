@@ -91,6 +91,15 @@ button:disabled {
   border: 1px solid #37537f;
   padding: 8px;
 }
+.turn-report {
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid #2b4364;
+  background: rgba(8, 14, 24, 0.75);
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
 .inventory {
   margin-top: 12px;
   border-top: 1px solid #304f73;
