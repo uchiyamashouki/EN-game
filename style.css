@@ -68,7 +68,22 @@ body {
 .actions {
   display: flex;
   flex-wrap: wrap;
-@@ -78,34 +87,125 @@ button:disabled {
+  gap: 8px;
+  margin: 12px 0;
+}
+button {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #4d8ef5;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+button:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
 .log {
   min-height: 40px;
   background: #050a12;
