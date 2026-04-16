@@ -1,5 +1,5 @@
 import { wordsForStage } from "../utils/questionSelector.js";
-import { classifyWords } from "../utils/wordStats.js";
+import { classifyWords, getAccuracy } from "../utils/wordStats.js";
 
 export class NpcScene {
   constructor(root, state, navigate) {
@@ -30,14 +30,15 @@ export class NpcScene {
     this.root.querySelectorAll("[data-kind]").forEach((btn) => {
       btn.addEventListener("click", () => {
         if (btn.dataset.kind === "strong") {
-          list.innerHTML = `<h3>得意(60%以上)</h3><ul>${strong.slice(0, 40).map((w) => `<li>${w.q}</li>`).join("")}</ul>`;
+          list.innerHTML = `<h3>得意(60%以上)</h3><ul>${strong.map((w) => `<li>${w.q}</li>`).join("")}</ul>`;
         } else if (btn.dataset.kind === "weak") {
-          list.innerHTML = `<h3>苦手(60%未満)</h3><ul>${weak.slice(0, 40).map((w) => `<li>${w.q}</li>`).join("")}</ul>`;
+          list.innerHTML = `<h3>苦手(60%未満)</h3><ul>${weak.map((w) => `<li>${w.q}</li>`).join("")}</ul>`;
         } else {
-          list.innerHTML = `<h3>正答率</h3><ul>${stageWords.slice(0, 40).map((w) => {
+          list.innerHTML = `<h3>正答率（出題範囲の全単語）</h3><ul>${stageWords.map((w) => {
             const s = this.state.wordStats[w.id];
-            const rate = s && s.total ? ((s.correct / s.total) * 100).toFixed(1) : "0.0";
-            return `<li>${w.q}: ${rate}% (${s?.correct || 0}/${s?.total || 0})</li>`;
+            const rate = (getAccuracy(s) * 100).toFixed(1);
+            const answered = s?.total ? `${s.correct}/${s.total}` : "未回答";
+            return `<li>${w.q}: ${rate}% (${answered})</li>`;
           }).join("")}</ul>`;
         }
       });
