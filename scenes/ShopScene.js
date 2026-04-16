@@ -12,6 +12,7 @@ export class ShopScene {
         <p>所持金: ${this.state.money}円</p>
         <button data-item="heal" data-cost="8">パン(8円) HP+25</button>
         <button data-item="guard" data-cost="10">木の盾(10円) 被ダメ軽減</button>
+        <button data-item="boost" data-cost="12">増強剤(12円) 次の攻撃ダメージ2倍</button>
         <button id="back">戻る</button>
       </div>
     `;
@@ -23,6 +24,7 @@ export class ShopScene {
         this.state.money -= cost;
         if (b.dataset.item === "heal") this.state.inventory.push({ name: "パン", type: "heal", value: 25 });
         if (b.dataset.item === "guard") this.state.inventory.push({ name: "木の盾", type: "guard", value: 0.6 });
+        if (b.dataset.item === "boost") this.state.inventory.push({ name: "増強剤", type: "boost", value: 2 });
         this.render();
       });
     });
