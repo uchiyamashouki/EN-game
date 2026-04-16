@@ -204,8 +204,15 @@ export class BattleScene {
         submitBtn.style.display = "none";
         input.disabled = true;
         nextBtn.style.display = "inline-block";
-        nextBtn.focus();
-        nextBtn.onclick = () => close(value);
+        if (reason === "keyboard-submit") {
+          setTimeout(() => nextBtn.focus(), 0);
+        } else {
+          nextBtn.focus();
+        }
+        nextBtn.onclick = (e) => {
+          e.preventDefault();
+          close(value);
+        };
       };
 
       const interval = setInterval(() => {
@@ -216,7 +223,11 @@ export class BattleScene {
 
       modal.querySelector("#submit").addEventListener("click", () => revealAnswer(input.value, "submit"));
       input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") revealAnswer(input.value, "submit");
+        if (e.key === "Enter") {
+          e.preventDefault();
+          e.stopPropagation();
+          revealAnswer(input.value, "keyboard-submit");
+        }
       });
     });
   }
