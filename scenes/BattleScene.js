@@ -155,9 +155,9 @@ export class BattleScene {
         <div class="quiz-card">
           <h3>英単語: ${q.word ?? q.q}</h3>
           <p>${q.example ? `例文: ${q.example}` : ""}</p>
-          <p>日本語を入力（6秒）</p>
+          <p>日本語を入力（9秒）</p>
           <input id="ans" autocomplete="off" />
-          <div>残り: <span id="timer">6</span>秒</div>
+          <div>残り: <span id="timer">9</span>秒</div>
           <button id="submit">決定</button>
           <p id="feedback"></p>
           <button id="next" style="display:none;">次へ</button>
@@ -171,7 +171,7 @@ export class BattleScene {
       const submitBtn = modal.querySelector("#submit");
       input.focus();
 
-      let remaining = 6;
+      let remaining = 9;
       const close = (value) => {
         clearInterval(interval);
         modal.remove();
