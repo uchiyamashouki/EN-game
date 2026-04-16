@@ -1,4 +1,4 @@
-import { selectQuestionSet, wordsForStage } from "../utils/questionSelector.js";
+import { STAGES, selectQuestionSet, wordsForStage } from "../utils/questionSelector.js";
 import { recordAnswer, stageCoverage } from "../utils/wordStats.js";
 
 const ENEMIES = {
@@ -55,6 +55,13 @@ export class BattleScene {
           <div>HP: <span id="player-hp"></span></div>
           <div>敵HP: <span id="enemy-hp"></span></div>
         </div>
+        <div class="stage-nav">
+          <label for="stage-select">移動先ステージ</label>
+          <select id="stage-select">
+            ${STAGES.map((s) => `<option value="${s.stage}" ${s.stage === this.state.stage ? "selected" : ""}>${s.stage}</option>`).join("")}
+          </select>
+          <button id="stage-move-btn">移動</button>
+        </div>
         <div class="arena">
           <div class="actor player" id="player-actor">🧑‍🎓</div>
           <div class="actor enemy">
@@ -100,6 +107,17 @@ export class BattleScene {
     });
     this.root.querySelector("#npc-btn").addEventListener("click", () => this.navigate("npc"));
     this.root.querySelector("#shop-btn").addEventListener("click", () => this.navigate("shop"));
+    this.root.querySelector("#stage-move-btn").addEventListener("click", () => {
+      const selected = Number(this.root.querySelector("#stage-select").value);
+      if (selected === this.state.stage) {
+        this.writeLog(`STAGE ${selected} にいます。`);
+        return;
+      }
+      this.state.stage = selected;
+      this.state.enemyHp = 0;
+      this.state.turns = 0;
+      this.navigate("battle");
+    });
   }
 
   createEnemy(isBoss) {
