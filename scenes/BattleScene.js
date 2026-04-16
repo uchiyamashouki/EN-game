@@ -191,14 +191,16 @@ export class BattleScene {
         const userAnswer = value?.trim() ?? "";
         const correctAnswer = String(q.a ?? "").trim();
         const ok = userAnswer === correctAnswer;
-        const timeoutLikeFail = !ok && (reason === "timeout" || reason === "submit");
+        const isTimeout = reason === "timeout";
 
         feedback.textContent = ok
           ? `正解！ 正答: ${correctAnswer}`
-          : `時間切れ！ 正答: ${correctAnswer}`;
+          : isTimeout
+            ? `時間切れ！ 正答: ${correctAnswer}`
+            : `不正解！ 正答: ${correctAnswer}`;
         feedback.className = ok ? "feedback success" : "feedback fail";
         this.playQuizEffect(ok ? "success" : "fail", modal.querySelector(".quiz-card"));
-        if (timeoutLikeFail) timer.textContent = "0";
+        if (isTimeout) timer.textContent = "0";
         submitBtn.style.display = "none";
         input.disabled = true;
         nextBtn.style.display = "inline-block";
@@ -280,5 +282,11 @@ export class BattleScene {
     quizCard.classList.remove("quiz-success", "quiz-fail");
     void quizCard.offsetWidth;
     quizCard.classList.add(type === "success" ? "quiz-success" : "quiz-fail");
+
+    const badge = document.createElement("div");
+    badge.className = `quiz-fx-badge ${type === "success" ? "quiz-fx-success" : "quiz-fx-fail"}`;
+    badge.textContent = type === "success" ? "✓" : "✕";
+    quizCard.appendChild(badge);
+    badge.addEventListener("animationend", () => badge.remove(), { once: true });
   }
 }
