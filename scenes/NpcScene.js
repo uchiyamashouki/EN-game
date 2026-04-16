@@ -30,15 +30,15 @@ export class NpcScene {
     this.root.querySelectorAll("[data-kind]").forEach((btn) => {
       btn.addEventListener("click", () => {
         if (btn.dataset.kind === "strong") {
-          list.innerHTML = `<h3>得意(60%以上)</h3><ul>${strong.map((w) => `<li>${w.q}</li>`).join("")}</ul>`;
+          list.innerHTML = `<h3>得意(60%以上)</h3><ul>${strong.map((w) => `<li>${w.q}（${w.a}）</li>`).join("")}</ul>`;
         } else if (btn.dataset.kind === "weak") {
-          list.innerHTML = `<h3>苦手(60%未満)</h3><ul>${weak.map((w) => `<li>${w.q}</li>`).join("")}</ul>`;
+          list.innerHTML = `<h3>苦手(60%未満)</h3><ul>${weak.map((w) => `<li>${w.q}（${w.a}）</li>`).join("")}</ul>`;
         } else {
           list.innerHTML = `<h3>正答率（出題範囲の全単語）</h3><ul>${stageWords.map((w) => {
             const s = this.state.wordStats[w.id];
             const rate = (getAccuracy(s) * 100).toFixed(1);
             const answered = s?.total ? `${s.correct}/${s.total}` : "未回答";
-            return `<li>${w.q}: ${rate}% (${answered})</li>`;
+            return `<li>${w.q}（${w.a}）: ${rate}% (${answered})</li>`;
           }).join("")}</ul>`;
         }
       });
