@@ -83,6 +83,14 @@ body {
   gap: 8px;
   margin: 12px 0;
 }
+.progress-note {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #365170;
+  border-radius: 8px;
+  background: rgba(16, 27, 41, 0.9);
+  font-size: 14px;
+}
 button {
   border: none;
   padding: 8px 12px;
