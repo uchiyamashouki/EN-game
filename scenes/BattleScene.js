@@ -6,6 +6,7 @@ const ENEMIES = {
     { name: "スライム", hp: 55, art: "🟢" },
     { name: "ゴブリン", hp: 65, art: "👹" },
     { name: "バット", hp: 50, art: "🦇" }
+    rare: { name: "デビル", hp: 50, art: "👿", attack: 50 },
   ],
   boss: [
     { name: "語彙ドラゴン", hp: 130, art: "🐉" }
@@ -122,6 +123,10 @@ export class BattleScene {
   }
 
   createEnemy(isBoss) {
+      if (!isBoss && Math.random() < 0.1) {
+      const rare = ENEMIES.rare;
+      return { ...rare, maxHp: rare.hp, isBoss: false };
+    }
     const list = isBoss ? ENEMIES.boss : ENEMIES.normal;
     const pick = list[Math.floor(Math.random() * list.length)];
     return { ...pick, maxHp: pick.hp + (this.state.stage - 1) * 5, isBoss };
@@ -180,7 +185,7 @@ export class BattleScene {
 
   enemyTurn() {
     const guarded = this.state.activeEffects.playerGuardTurns > 0;
-    const base = this.enemy.isBoss ? 20 : 12;
+    const base = this.enemy.attack ?? (this.enemy.isBoss ? 20 : 12);
     const boosted = Math.random() < ENEMY_CRIT_RATE;
     const critDamage = boosted ? Math.round(base * CRIT_MULTIPLIER) : base;
     const damage = Math.round(critDamage * (guarded ? 0.6 : 1));
