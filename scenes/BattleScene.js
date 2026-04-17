@@ -1,5 +1,5 @@
 import { STAGES, selectQuestionSet, wordsForStage } from "../utils/questionSelector.js";
-import { recordAnswer, stageCoverage } from "../utils/wordStats.js";
+import { recordAnswer, stageStrongWordProgress } from "../utils/wordStats.js";
 
 const ENEMIES = {
   normal: [
@@ -42,8 +42,8 @@ export class BattleScene {
   }
 
   render() {
-    const stageWords = wordsForStage(this.state.stage);
-    const coverage = stageCoverage(stageWords, this.state);
+    const progress = stageStrongWordProgress(stageWords, this.state);
+    const canFightBoss = progress >= 0.8;
     const canFightBoss = coverage >= 0.8;
     const enemy = this.createEnemy(false);
 
@@ -76,6 +76,7 @@ export class BattleScene {
           <div id="enemy-report">敵行動: -</div>
         </div>
         <div class="actions">
+          <div class="progress-note">中ボス挑戦条件: 得意な単語数 / 出題範囲総数 = ${(progress * 100).toFixed(1)}%</div>
           <button data-cmd="attack">攻撃</button>
           <button data-cmd="heal">回復</button>
           <button data-cmd="power">強攻撃</button>
