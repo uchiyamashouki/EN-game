@@ -45,8 +45,9 @@ function pickPrioritizedByAnswerCount(pool, state, count = 10) {
     return Array.from({ length: count }, () => WORDS[Math.floor(Math.random() * WORDS.length)]);
   }
 
+  const stats = state?.wordStats ?? {};
   const prioritized = [...pool]
-    .map((word) => ({ word, total: state.wordStats[word.id]?.total ?? 0, tie: Math.random() }))
+    .map((word) => ({ word, total: stats[word.id]?.total ?? 0, tie: Math.random() }))
     .sort((a, b) => (a.total - b.total) || (a.tie - b.tie))
     .map(({ word }) => word);
 
