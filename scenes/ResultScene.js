@@ -1,5 +1,5 @@
 import { wordsForStage } from "../utils/questionSelector.js";
-import { stageCoverage } from "../utils/wordStats.js";
+import { stageStrongWordProgress } from "../utils/wordStats.js";
 
 export class ResultScene {
   constructor(root, state, navigate, payload) {
@@ -11,7 +11,7 @@ export class ResultScene {
 
   render() {
     const p = this.payload || {};
-    const coverage = stageCoverage(wordsForStage(this.state.stage), this.state);
+    const progress = stageStrongWordProgress(wordsForStage(this.state.stage), this.state);
     const bossCleared = p.win && p.boss;
 
     if (bossCleared && this.state.stage < 8) this.state.stage += 1;
@@ -22,7 +22,7 @@ export class ResultScene {
         <p>${p.win ? `食費を ${p.gain}円 獲得。` : "所持金が半分になった。"}</p>
         <p>${p.item ? `ドロップ: ${p.item.name}` : "ドロップなし"}</p>
         <p>現在ステージ: ${this.state.stage}</p>
-        <p>中ボス挑戦条件進捗: ${(coverage * 100).toFixed(1)}%</p>
+        <p>中ボス挑戦条件進捗（得意な単語数 / 出題範囲総数）: ${(progress * 100).toFixed(1)}%</p>
         <button id="back">次へ</button>
       </div>
     `;
