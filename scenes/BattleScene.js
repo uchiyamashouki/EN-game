@@ -6,8 +6,8 @@ const ENEMIES = {
     { name: "スライム", hp: 55, art: "🟢" },
     { name: "ゴブリン", hp: 65, art: "👹" },
     { name: "バット", hp: 50, art: "🦇" }
-    rare: { name: "デビル", hp: 50, art: "👿", attack: 50 },
   ],
+  rare: { name: "デビル", hp: 60, art: "👿", attack: 50 },
   boss: [
     { name: "語彙ドラゴン", hp: 130, art: "🐉" }
   ]
@@ -43,7 +43,7 @@ export class BattleScene {
   }
 
   render() {
-    const progress = stageStrongWordProgress(stageWords, this.state);
+    const stageWords = wordsForStage(this.state.stage);
     const canFightBoss = progress >= 0.8;
     const canFightBoss = coverage >= 0.8;
     const enemy = this.createEnemy(false);
@@ -81,7 +81,7 @@ export class BattleScene {
           <button data-cmd="attack">攻撃</button>
           <button data-cmd="heal">回復</button>
           <button data-cmd="power">強攻撃</button>
-          <button id="boss-btn" ${canFightBoss ? "" : "disabled"}>中ボス挑戦</button>
+          <button id="boss-btn" ${canChallengeBoss ? "" : "disabled"}>中ボス挑戦</button>
           <button id="npc-btn">NPCに相談</button>
           <button id="shop-btn">ショップ</button>
         </div>
@@ -100,7 +100,7 @@ export class BattleScene {
       btn.addEventListener("click", () => this.playerTurn(btn.dataset.cmd));
     });
     this.root.querySelector("#boss-btn").addEventListener("click", () => {
-      if (!canFightBoss) return;
+      if (!canChallengeBoss) return;
       this.enemy = this.createEnemy(true);
       this.state.turns = 0;
       this.state.enemyHp = this.enemy.maxHp;
@@ -123,7 +123,7 @@ export class BattleScene {
   }
 
   createEnemy(isBoss) {
-      if (!isBoss && Math.random() < 0.1) {
+    if (!isBoss && Math.random() < 0.1) {
       const rare = ENEMIES.rare;
       return { ...rare, maxHp: rare.hp, isBoss: false };
     }
