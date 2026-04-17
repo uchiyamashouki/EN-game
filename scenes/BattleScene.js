@@ -44,8 +44,8 @@ export class BattleScene {
 
   render() {
     const stageWords = wordsForStage(this.state.stage);
-    const canFightBoss = progress >= 0.8;
-    const canFightBoss = coverage >= 0.8;
+    const progress = stageStrongWordProgress(stageWords, this.state);
+    const canChallengeBoss = progress >= 0.8;
     const enemy = this.createEnemy(false);
 
     this.root.innerHTML = `
