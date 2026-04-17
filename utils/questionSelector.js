@@ -64,10 +64,12 @@ export function selectQuestionSet({ command, stage, state, isBoss = false }) {
     return pick(prioritized.length ? prioritized : stageWords, 10);
   }
 
-  if (command === "heal") return pick(strong.length ? strong : stageWords, 10);
+  if (command === "heal") {
+    return pickPrioritizedByAnswerCount(strong.length ? strong : stageWords, state, 10);
+  }
   if (command === "power") {
     const fallback = unseen.length ? unseen : stageWords;
-    return pick(weak.length ? weak : fallback, 10);
+    return pickPrioritizedByAnswerCount(weak.length ? weak : fallback, state, 10);
   }
   
   if (command === "attack") {
