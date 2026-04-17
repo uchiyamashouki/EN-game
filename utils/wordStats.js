@@ -40,3 +40,12 @@ export function stageCoverage(stageWords, state) {
   const solved = stageWords.filter((w) => (state.wordStats[w.id]?.correct || 0) > 0).length;
   return stageWords.length ? solved / stageWords.length : 0;
 }
+
+export function stageStrongWordProgress(stageWords, state) {
+  if (!stageWords.length) return 0;
+  const strongCount = stageWords.filter((word) => {
+    const stat = state.wordStats[word.id];
+    return stat && stat.total > 0 && getAccuracy(stat) >= 0.6;
+  }).length;
+  return strongCount / stageWords.length;
+}
