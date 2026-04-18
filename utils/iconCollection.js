@@ -38,12 +38,17 @@ export function runGacha(state, count) {
   ensureIconState(state);
 
   // 未入手アイコンのみを排出対象にする（既出アイコンは二度と出ない）
-  const remainingIds = new Set(ICON_POOL.map((icon) => icon.id).filter((id) => !state.unlockedIconIds.includes(id)));
+  const remainingIds = new Set(
+    ICON_POOL
+      .filter((icon) => !icon.isBase)
+      .map((icon) => icon.id)
+      .filter((id) => !state.unlockedIconIds.includes(id))
+  );
   const results = [];
 
   for (let i = 0; i < count; i += 1) {
     if (Math.random() < GACHA_RARE_RATE && remainingIds.size > 0) {
-      const remainingIcons = ICON_POOL.filter((icon) => remainingIds.has(icon.id));
+      const remainingIcons = ICON_POOL.filter((icon) => !icon.isBase && remainingIds.has(icon.id));
       const pickIndex = Math.floor(Math.random() * remainingIcons.length);
       const picked = remainingIcons[pickIndex];
 
