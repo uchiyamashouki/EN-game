@@ -24,7 +24,7 @@ export class ShopScene {
         <button data-item="boost" data-cost="12">増強剤(12円) 次の攻撃ダメージ2倍</button>
         <hr />
         <h3>アイコンガチャ（排出率3%）</h3>
-        <p>入手済み: ${unlockedCount} / 30</p>
+        <p>入手済み: ${unlockedCount} / 36</p>
         <button data-gacha="1" data-cost="10">1回ガチャ(10円)</button>
         <button data-gacha="10" data-cost="100">10連ガチャ(100円)</button>
         <div class="gacha-log">${gachaLog}</div>
