@@ -163,7 +163,6 @@ export class BattleScene {
     } else {
       this.state.enemyHp = Math.max(0, this.state.enemyHp - amount);
       const beforeHp = this.state.playerHp;
-      const beforeHp = this.state.playerHp;
       const questionCount = Math.max(1, questions.length);
       const lifesteal = Math.floor(15 * (correct / questionCount));
       this.state.playerHp = Math.min(this.state.maxHp, this.state.playerHp + lifesteal);
