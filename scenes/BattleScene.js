@@ -173,6 +173,7 @@ export class BattleScene {
       this.writeLog(`${COMMANDS[command].label}: ${correct}/10正解。${amount}ダメージ。${healText}${critText}${boostText}`);
       this.updateTurnReport("player", `${COMMANDS[command].label}で${amount}ダメージ${critical ? "（会心）" : ""}${healed > 0 ? ` / HP+${healed}` : ""}`);
       this.playBattleEffect("attack", "enemy");
+    }
     this.state.turns += 1;
     this.updateHud();
 
