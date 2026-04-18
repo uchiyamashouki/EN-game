@@ -7,7 +7,7 @@ const ENEMIES = {
   normal: [
     { name: "スライム", hp: 55, art: "🟢", iconType: "slime" },
     { name: "ゴブリン", hp: 65, art: "👹", iconType: "goblin" },
-    { name: "バット", hp: 50, art: "🦇", iconType: "bat" 
+    { name: "バット", hp: 50, art: "🦇", iconType: "bat" }
   ],
   rare: { name: "デビル", hp: 60, art: "👿", attack: 50, iconType: "ghost" },
   boss: [
