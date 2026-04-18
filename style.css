@@ -268,3 +268,66 @@ ul {
   max-height: 220px;
   overflow: auto;
 }
+.icon-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.icon-image.small {
+  width: 36px;
+  height: 36px;
+}
+.icon-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: grid;
+  place-items: center;
+  z-index: 10;
+}
+.icon-card {
+  width: min(760px, 92vw);
+  max-height: 86vh;
+  overflow-y: auto;
+  background: #101a2a;
+  border: 2px solid #7aa1d8;
+  border-radius: 10px;
+  padding: 14px;
+}
+.icon-sections {
+  display: grid;
+  gap: 10px;
+}
+.icon-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.icon-choice {
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #2c507d;
+}
+.icon-choice.selected {
+  outline: 2px solid #ffd669;
+}
+.icon-empty {
+  color: #b8c7db;
+  font-size: 13px;
+}
+.icon-emoji {
+  font-size: 24px;
+  width: 36px;
+  text-align: center;
+}
+.gacha-log {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  border: 1px solid #365170;
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(16, 27, 41, 0.8);
+}
