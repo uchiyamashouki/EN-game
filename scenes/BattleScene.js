@@ -162,10 +162,16 @@ export class BattleScene {
       this.playBattleEffect("heal", "player");
     } else {
       this.state.enemyHp = Math.max(0, this.state.enemyHp - amount);
+      const beforeHp = this.state.playerHp;
+      const lifesteal = 15;
+      this.state.playerHp = Math.min(this.state.maxHp, this.state.playerHp + lifesteal);
+      const healed = this.state.playerHp - beforeHp;
       const critText = critical ? " 会心の一撃！" : "";
       const boostText = hasBoost ? " 増強剤で威力2倍！" : "";
-      this.writeLog(`${COMMANDS[command].label}: ${correct}/10正解。${amount}ダメージ。${critText}${boostText}`);
-      this.updateTurnReport("player", `${COMMANDS[command].label}で${amount}ダメージ${critical ? "（会心）" : ""}`);
+      const healText = healed > 0 ? ` HPを${healed}回復。` : "";
+      this.writeLog(`${COMMANDS[command].label}: ${correct}/10正解。${amount}ダメージ。${healText}${critText}${boostText}`);
+      this.updateTurnReport("player", `${COMMANDS[command].label}で${amount}ダメージ${critical ? "（会心）" : ""}${healed > 0 ? ` / HP+${healed}` : ""}`);
+      this.playBattleEffect("attack", "enemy");
       this.playBattleEffect("attack", "enemy");
     }
     this.state.turns += 1;
