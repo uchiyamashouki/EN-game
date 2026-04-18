@@ -3,6 +3,8 @@ import { ResultScene } from "./scenes/ResultScene.js";
 import { ShopScene } from "./scenes/ShopScene.js";
 import { NpcScene } from "./scenes/NpcScene.js";
 import { loadGame, saveGame } from "./systems/saveData.js";
+import { DEFAULT_SELECTED_ICONS, DEFAULT_UNLOCKED_ICON_IDS } from "./deta/icons.js";
+import { ensureIconState } from "./utils/iconCollection.js";
 
 const app = document.querySelector("#app");
 
@@ -14,10 +16,13 @@ const initialState = {
   enemyHp: 60,
   turns: 0,
   wordStats: {},
-  inventory: []
+  inventory: [],
+  unlockedIconIds: [...DEFAULT_UNLOCKED_ICON_IDS],
+  selectedIcons: { ...DEFAULT_SELECTED_ICONS }
 };
 
 const state = { ...initialState, ...(loadGame() ?? {}) };
+ensureIconState(state);
 
 function navigate(name, payload = {}) {
   saveGame(state);
