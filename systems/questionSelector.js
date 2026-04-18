@@ -1,5 +1,5 @@
 // ステージデータを読み込む
-import { STAGES } from "../data/stages.js";
+import { STAGES } from "../state/stages.js";
 
 /**
  * 指定したステージの範囲を取得する
