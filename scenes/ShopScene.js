@@ -1,4 +1,5 @@
 import { runGacha, ensureIconState } from "../utils/iconCollection.js";
+import { ICON_POOL } from "../deta/icons.js";
 
 export class ShopScene {
   constructor(root, state, navigate) {
