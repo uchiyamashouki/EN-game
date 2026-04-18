@@ -1,15 +1,17 @@
 import { STAGES, selectQuestionSet, wordsForStage } from "../utils/questionSelector.js";
 import { recordAnswer, stageStrongWordProgress } from "../utils/wordStats.js";
+import { getSelectedIcon, getUnlockedIcons, ensureIconState } from "../utils/iconCollection.js";
+import { ICON_TYPES } from "../deta/icons.js";
 
 const ENEMIES = {
   normal: [
-    { name: "スライム", hp: 55, art: "🟢" },
-    { name: "ゴブリン", hp: 65, art: "👹" },
-    { name: "バット", hp: 50, art: "🦇" }
+    { name: "スライム", hp: 55, art: "🟢", iconType: "slime" },
+    { name: "ゴブリン", hp: 65, art: "👹", iconType: "goblin" },
+    { name: "バット", hp: 50, art: "🦇", iconType: "bat" 
   ],
-  rare: { name: "デビル", hp: 60, art: "👿", attack: 50 },
+  rare: { name: "デビル", hp: 60, art: "👿", attack: 50, iconType: "ghost" },
   boss: [
-    { name: "語彙ドラゴン", hp: 130, art: "🐉" }
+    { name: "語彙ドラゴン", hp: 130, art: "🐉", iconType: "dragon" }
   ]
 };
 
@@ -43,6 +45,7 @@ export class BattleScene {
   }
 
   render() {
+    ensureIconState(this.state);
     const stageWords = wordsForStage(this.state.stage);
     const progress = stageStrongWordProgress(stageWords, this.state);
     const canChallengeBoss = progress >= 0.8;
@@ -64,9 +67,9 @@ export class BattleScene {
           <button id="stage-move-btn">移動</button>
         </div>
         <div class="arena">
-          <div class="actor player" id="player-actor">🧑‍🎓</div>
+         <div class="actor player" id="player-actor"></div>
           <div class="actor enemy">
-            <div id="enemy-art" class="enemy-sprite">${enemy.art}</div>
+            <div id="enemy-art" class="enemy-sprite"></div>
             <div id="enemy-name">${enemy.name}</div>
           </div>
           <div class="battle-fx-layer" id="battle-fx-layer"></div>
@@ -84,6 +87,7 @@ export class BattleScene {
           <button id="boss-btn" ${canChallengeBoss ? "" : "disabled"}>中ボス挑戦</button>
           <button id="npc-btn">NPCに相談</button>
           <button id="shop-btn">ショップ</button>
+          <button id="icon-btn">アイコン変更</button>
         </div>
         <div class="inventory" id="inventory"></div>
       </div>
@@ -95,6 +99,7 @@ export class BattleScene {
     this.state.activeEffects.playerGuardTurns ||= 0;
     this.updateHud();
     this.renderInventory();
+    this.renderBattleIcons();
 
     this.root.querySelectorAll("[data-cmd]").forEach((btn) => {
       btn.addEventListener("click", () => this.playerTurn(btn.dataset.cmd));
@@ -108,6 +113,7 @@ export class BattleScene {
       this.writeLog(`中ボス ${this.enemy.name} に挑戦！ 苦手単語が優先出題されます。`);
     });
     this.root.querySelector("#npc-btn").addEventListener("click", () => this.navigate("npc"));
+    this.root.querySelector("#icon-btn").addEventListener("click", () => this.openIconSelector());
     this.root.querySelector("#shop-btn").addEventListener("click", () => this.navigate("shop"));
     this.root.querySelector("#stage-move-btn").addEventListener("click", () => {
       const selected = Number(this.root.querySelector("#stage-select").value);
@@ -292,8 +298,8 @@ export class BattleScene {
 
   updateEnemyVisual() {
     this.state.enemyHp = this.enemy.maxHp;
-    this.root.querySelector("#enemy-art").textContent = this.enemy.art;
     this.root.querySelector("#enemy-name").textContent = this.enemy.name;
+    this.renderBattleIcons();
     this.updateHud();
   }
 
@@ -330,6 +336,78 @@ export class BattleScene {
     });
   }
 
+  
+  renderIcon(target, icon, fallbackEmoji) {
+    if (!target) return;
+    if (icon?.src) {
+      target.innerHTML = `<img src="${icon.src}" alt="${icon.name}" class="icon-image" />`;
+      return;
+    }
+    target.textContent = icon?.emoji || fallbackEmoji;
+  }
+
+  renderBattleIcons() {
+    const playerIcon = getSelectedIcon(this.state, "player");
+    const enemyType = this.enemy?.iconType;
+    const enemyIcon = enemyType ? getSelectedIcon(this.state, enemyType) : null;
+
+    this.renderIcon(this.root.querySelector("#player-actor"), playerIcon, "🧑‍🎓");
+    this.renderIcon(this.root.querySelector("#enemy-art"), enemyIcon, this.enemy?.art || "👾");
+  }
+
+  openIconSelector() {
+    const modal = document.createElement("div");
+    modal.className = "icon-modal";
+
+    const sections = Object.entries(ICON_TYPES).map(([type, label]) => {
+      const unlocked = getUnlockedIcons(this.state, type);
+      const buttons = unlocked.length
+        ? unlocked.map((icon) => {
+          const selected = this.state.selectedIcons[type] === icon.id;
+          const view = icon.src
+            ? `<img src="${icon.src}" alt="${icon.name}" class="icon-image small" />`
+            : `<span class="icon-emoji">${icon.emoji || "❔"}</span>`;
+          return `
+            <button class="icon-choice ${selected ? "selected" : ""}" data-type="${type}" data-id="${icon.id}">
+              ${view}
+              <span>${icon.name}</span>
+            </button>
+          `;
+        }).join("")
+        : '<div class="icon-empty">未入手</div>';
+
+      return `
+        <section class="icon-section">
+          <h4>${label}</h4>
+          <div class="icon-grid">${buttons}</div>
+        </section>
+      `;
+    }).join("");
+
+    modal.innerHTML = `
+      <div class="icon-card">
+        <h3>アイコン変更</h3>
+        <p>入手済みアイコンから選択できます。</p>
+        <div class="icon-sections">${sections}</div>
+        <button id="icon-close">閉じる</button>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    modal.querySelectorAll(".icon-choice").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const { type, id } = btn.dataset;
+        this.state.selectedIcons[type] = id;
+        modal.remove();
+        this.renderBattleIcons();
+        this.writeLog(`${ICON_TYPES[type]}のアイコンを変更しました。`);
+      });
+    });
+
+    modal.querySelector("#icon-close").addEventListener("click", () => modal.remove());
+  }
+  
   updateHud() {
     this.root.querySelector("#player-hp").textContent = `${this.state.playerHp}/${this.state.maxHp}`;
     this.root.querySelector("#enemy-hp").textContent = `${this.state.enemyHp ?? this.enemy.maxHp}/${this.enemy.maxHp}`;
