@@ -8,8 +8,8 @@ export const STAGES = [
   { stage: 4, startId: 601, endId: 800 },
   { stage: 5, startId: 801, endId: 1000 },
   { stage: 6, startId: 1001, endId: 1200 },
-  { stage: 7, startId: 1201, endId: 1477 },
-  { stage: 8, startId: 1, endId: 1477 }
+  { stage: 7, startId: 1201, endId: 1480 },
+  { stage: 8, startId: 1, endId: 1480 }
 ];
 
 export function getStageRange(stage) {
@@ -30,19 +30,61 @@ function shuffle(arr) {
   return copy;
 }
 
-function pick(pool, count = 10) {
-  if (!pool.length) {
-    return Array.from({ length: count }, () => WORDS[Math.floor(Math.random() * WORDS.length)]);
+function randomWord() {
+  return WORDS[Math.floor(Math.random() * WORDS.length)];
+}
+
+function preventImmediateRepeat(list, lastWordId) {
+  if (!list.length || !lastWordId || list[0]?.id !== lastWordId) {
+    return list;
   }
-  const list = shuffle(pool);
+
+  const swapIndex = list.findIndex((word) => word.id !== lastWordId);
+  if (swapIndex <= 0) return list;
+
+  const moved = [...list];
+  [moved[0], moved[swapIndex]] = [moved[swapIndex], moved[0]];
+  return moved;
+}
+
+function fillQuestionsFromPool(pool, count = 10, lastWordId = null) {
+  if (!pool.length) {
+    const fallback = Array.from({ length: count }, () => randomWord());
+    return preventImmediateRepeat(fallback, lastWordId);
+  }
+  
   const out = [];
-  while (out.length < count) out.push(list[out.length % list.length]);
+  let prevId = lastWordId;
+
+  while (out.length < count) {
+    const cycle = shuffle(pool);
+    for (const word of cycle) {
+      if (out.length >= count) break;
+
+      if (word.id === prevId) {
+        const alternative = cycle.find((candidate) => candidate.id !== prevId && !out.includes(candidate));
+        if (alternative) {
+          out.push(alternative);
+          prevId = alternative.id;
+          continue;
+        }
+      }
+
+      out.push(word);
+      prevId = word.id;
+    }
+  }
+
   return out;
+}
+
+function pick(pool, count = 10, lastWordId = null) {
+  return fillQuestionsFromPool(pool, count, lastWordId);
 }
 
 function pickPrioritizedByAnswerCount(pool, state, count = 10) {
   if (!pool.length) {
-    return Array.from({ length: count }, () => WORDS[Math.floor(Math.random() * WORDS.length)]);
+    return Array.from({ length: count }, () => randomWord());
   }
 
   const stats = state?.wordStats ?? {};
@@ -51,18 +93,17 @@ function pickPrioritizedByAnswerCount(pool, state, count = 10) {
     .sort((a, b) => (a.total - b.total) || (a.tie - b.tie))
     .map(({ word }) => word);
 
-  const out = [];
-  while (out.length < count) out.push(prioritized[out.length % prioritized.length]);
-  return out;
+  return fillQuestionsFromPool(prioritized, count, state?.lastQuestionWordId ?? null);
 }
 
 export function selectQuestionSet({ command, stage, state, isBoss = false }) {
   const stageWords = wordsForStage(stage);
   const { strong, weak, unseen } = classifyWords(stageWords, state);
-
+  const lastWordId = state?.lastQuestionWordId ?? null;
+  
   if (isBoss) {
     const prioritized = [...weak].sort((a, b) => a.accuracy - b.accuracy);
-    return pick(prioritized.length ? prioritized : stageWords, 10);
+    return pick(prioritized.length ? prioritized : stageWords, 10, lastWordId);
   }
 
   if (command === "heal") {
@@ -77,5 +118,5 @@ export function selectQuestionSet({ command, stage, state, isBoss = false }) {
     return pickPrioritizedByAnswerCount(stageWords, state, 10);
   }
 
-  return pick(stageWords, 10);
+  return pick(stageWords, 10, lastWordId);
 }
