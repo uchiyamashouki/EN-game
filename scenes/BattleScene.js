@@ -147,6 +147,7 @@ export class BattleScene {
       const answer = await this.askQuestion(q);
       const ok = answer.trim() === String(q.a ?? "").trim();
       recordAnswer(this.state, q.id, ok);
+      this.state.lastQuestionWordId = q.id;
       if (ok) correct += 1;
     }
 
