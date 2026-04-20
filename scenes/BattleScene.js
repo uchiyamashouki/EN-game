@@ -2,46 +2,9 @@ import { STAGES, selectQuestionSet, wordsForStage } from "../utils/questionSelec
 import { recordAnswer, stageStrongWordProgress } from "../utils/wordStats.js";
 import { getSelectedIcon, getUnlockedIcons, ensureIconState } from "../utils/iconCollection.js";
 import { ICON_TYPES } from "../deta/icons.js";
-
-const ENEMIES = {
-  normal: [
-    { name: "スライム", hp: 55, art: "🟢", iconType: "slime" },
-    { name: "ゴブリン", hp: 65, art: "👹", iconType: "goblin" },
-    { name: "バット", hp: 50, art: "🦇", iconType: "bat" }
-  ],
-  rare: { name: "ゴースト", hp: 60, art: "👻", attack: 50, iconType: "ghost" },
-  boss: [
-    { name: "語彙ドラゴン", hp: 130, art: "🐉", iconType: "dragon" }
-  ]
-};
-
-const COMMANDS = {
-  attack: { label: "攻撃", base: 20 },
-  heal: { label: "回復", base: 35 },
-  power: { label: "強攻撃", base: 35 }
-};
-
-const PLAYER_CRIT_RATE = 0.14;
-const ENEMY_CRIT_RATE = 0.12;
-const CRIT_MULTIPLIER = 2.2;
-
-function moneyByTurns(turns) {
-  return Math.max(1, Math.min(15, 16 - turns));
-}
-
-function rewardMultiplier(enemy) {
-  if (enemy?.iconType === "ghost") return 3;
-  if (enemy?.iconType === "dragon") return 4;
-  return 1;
-}
-
-function dropItem() {
-  const r = Math.random();
-  if (r < 0.22) return { name: "パン", type: "heal", value: 22 };
-  if (r < 0.33) return { name: "木の盾", type: "guard", value: 0.6 };
-  if (r < 0.43) return { name: "増強剤", type: "boost", value: 2 };
-  return null;
-}
+import { ENEMIES, COMMANDS, PLAYER_CRIT_RATE, ENEMY_CRIT_RATE, CRIT_MULTIPLIER } from "./battle/constants.js";
+import { askWordQuestion } from "./battle/quizModal.js";
+import { moneyByTurns, rewardMultiplier, dropItem } from "../systems/rewardCalculator.js";
 
 export class BattleScene {
   constructor(root, state, navigate) {
@@ -150,7 +113,7 @@ export class BattleScene {
 
     let correct = 0;
     for (const q of questions) {
-      const answer = await this.askQuestion(q);
+      const answer = await askWordQuestion(q, this.playQuizEffect.bind(this));
       const ok = answer.trim() === String(q.a ?? "").trim();
       recordAnswer(this.state, q.id, ok);
       this.state.lastQuestionWordId = q.id;
@@ -221,87 +184,6 @@ export class BattleScene {
       this.state.money = Math.floor(this.state.money / 2);
       this.navigate("result", { win: false, loseMoney: true });
     }
-  }
-
-  askQuestion(q) {
-    return new Promise((resolve) => {
-      const modal = document.createElement("div");
-      modal.className = "quiz-modal";
-      modal.innerHTML = `
-        <div class="quiz-card">
-          <h3>英単語: ${q.word ?? q.q}</h3>
-          <p>${q.example ? `例文: ${q.example}` : ""}</p>
-          <p>日本語を入力（9秒）</p>
-          <input id="ans" autocomplete="off" />
-          <div>残り: <span id="timer">9</span>秒</div>
-          <button id="submit">決定</button>
-          <p id="feedback"></p>
-          <button id="next" style="display:none;">次へ</button>
-        </div>
-      `;
-      document.body.appendChild(modal);
-      const input = modal.querySelector("#ans");
-      const timer = modal.querySelector("#timer");
-      const feedback = modal.querySelector("#feedback");
-      const nextBtn = modal.querySelector("#next");
-      const submitBtn = modal.querySelector("#submit");
-      input.focus();
-
-      let remaining = 9;
-      let finished = false;
-      const close = (value) => {
-        if (finished) return;
-        finished = true;
-        clearInterval(interval);
-        modal.remove();
-        resolve(value || "");
-      };
-
-      const revealAnswer = (value, reason = "submit") => {
-        if (finished) return;
-        clearInterval(interval);
-        const userAnswer = value?.trim() ?? "";
-        const correctAnswer = String(q.a ?? "").trim();
-        const ok = userAnswer === correctAnswer;
-        const isTimeout = reason === "timeout";
-
-        feedback.textContent = ok
-          ? `正解！ 正答: ${correctAnswer}`
-          : isTimeout
-            ? `時間切れ！ 正答: ${correctAnswer}`
-            : `不正解！ 正答: ${correctAnswer}`;
-        feedback.className = ok ? "feedback success" : "feedback fail";
-        this.playQuizEffect(ok ? "success" : "fail", modal.querySelector(".quiz-card"));
-        if (isTimeout) timer.textContent = "0";
-        submitBtn.style.display = "none";
-        input.disabled = true;
-        nextBtn.style.display = "inline-block";
-        if (reason === "keyboard-submit") {
-          setTimeout(() => nextBtn.focus(), 0);
-        } else {
-          nextBtn.focus();
-        }
-        nextBtn.onclick = (e) => {
-          e.preventDefault();
-          close(value);
-        };
-      };
-
-      const interval = setInterval(() => {
-        remaining -= 1;
-        timer.textContent = String(remaining);
-        if (remaining <= 0) revealAnswer("", "timeout");
-      }, 1000);
-
-      modal.querySelector("#submit").addEventListener("click", () => revealAnswer(input.value, "submit"));
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          e.stopPropagation();
-          revealAnswer(input.value, "keyboard-submit");
-        }
-      });
-    });
   }
 
   updateEnemyVisual() {
