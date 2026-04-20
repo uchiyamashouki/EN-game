@@ -70,6 +70,24 @@ export const ENEMIES = {
       )
     }
   ],
+    rare: {
+    name: "ゴースト",
+    hp: 60,
+    attack: 50,
+    art: makePixelSvg(
+      { p: "#c7b8ff", d: "#6c5bb6", e: "#ffffff", n: "#1f1a33" },
+      [
+        "....pppp....",
+        "..ppddddpp..",
+        ".pdddeeedddp.",
+        "pdddnnnndddp",
+        "pddddddddddp",
+        ".pddp..pddp.",
+        "..pp....pp..",
+        "...p....p..."
+      ]
+    )
+  },
   boss: [
     {
       name: "語彙ドラゴン",
