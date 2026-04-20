@@ -61,7 +61,11 @@
 
 ### `scenes/`（画面ロジック）
 - `scenes/BattleScene.js`
-  - 戦闘画面本体。敵生成、コマンド処理、クイズ出題、与ダメ/回復計算、敵ターン、演出制御。
+  - 戦闘画面本体。シーン描画とターン進行を担当（詳細ロジックは下記へ分割）。
+- `scenes/battle/constants.js`
+  - 戦闘で使う敵定義・コマンド定義・会心率などの定数。
+- `scenes/battle/quizModal.js`
+  - クイズ表示モーダル（9秒タイマー、判定表示、Enter送信）のUIロジック。
 - `scenes/ResultScene.js`
   - 勝敗画面。報酬/ドロップ表示、ステージ進行、次バトルへの復帰。
 - `scenes/ShopScene.js`
@@ -73,7 +77,7 @@
 
 ### `utils/`（実際に参照されるロジック）
 - `utils/questionSelector.js`
-  - ステージ範囲定義、ステージ単語抽出、コマンド別の出題セット選定。
+  - ステージ単語抽出、コマンド別の出題セット選定（ステージ範囲定義は `state/stages.js` を参照）。
 - `utils/wordStats.js`
   - 単語ごとの正答統計を更新し、得意/苦手分類や進捗率を算出。
 
@@ -99,7 +103,7 @@
 - `systems/battleLogic.js`
   - 現状空ファイル（戦闘ロジック分離予定地）。
 - `systems/rewardCalculator.js`
-  - 現状空ファイル（報酬計算分離予定地）。
+  - 勝利時報酬計算（ターン数→報酬、敵種別倍率、ドロップ抽選）。
 
 ---
 
