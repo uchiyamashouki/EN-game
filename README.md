@@ -93,7 +93,7 @@
 - `state/gameState.js`
   - グローバル状態の雛形定義（現行 `main.js` では未直接利用）。
 - `state/stages.js`
-  - ステージ定義の別置き版（現行 `utils/questionSelector.js` 内定義を使用）。
+  - ステージ定義の参照元（`utils/questionSelector.js` から利用）。
 
 ### `systems/`（旧実装/予備）
 - `systems/questionSelector.js`
