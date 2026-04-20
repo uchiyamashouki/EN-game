@@ -1,11 +1,11 @@
-import { STAGES, selectQuestionSet, wordsForStage } from "../utils/questionSelector.js";
+import { selectQuestionSet, wordsForStage } from "../utils/questionSelector.js";
+import { STAGES } from "../state/stages.js";
 import { recordAnswer, stageStrongWordProgress } from "../utils/wordStats.js";
 import { getSelectedIcon, getUnlockedIcons, ensureIconState } from "../utils/iconCollection.js";
 import { ICON_TYPES } from "../deta/icons.js";
 import { ENEMIES, COMMANDS, PLAYER_CRIT_RATE, ENEMY_CRIT_RATE, CRIT_MULTIPLIER } from "./battle/constants.js";
 import { askWordQuestion } from "./battle/quizModal.js";
 import { moneyByTurns, rewardMultiplier, dropItem } from "../systems/rewardCalculator.js";
-
 
 export class BattleScene {
   constructor(root, state, navigate) {
