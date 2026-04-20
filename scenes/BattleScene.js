@@ -6,6 +6,7 @@ import { ENEMIES, COMMANDS, PLAYER_CRIT_RATE, ENEMY_CRIT_RATE, CRIT_MULTIPLIER }
 import { askWordQuestion } from "./battle/quizModal.js";
 import { moneyByTurns, rewardMultiplier, dropItem } from "../systems/rewardCalculator.js";
 
+
 export class BattleScene {
   constructor(root, state, navigate) {
     this.root = root;
