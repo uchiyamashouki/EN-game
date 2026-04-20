@@ -1,16 +1,6 @@
 import { classifyWords } from "./wordStats.js";
 import { WORDS } from "../deta/words.js";
-
-export const STAGES = [
-  { stage: 1, startId: 1, endId: 200 },
-  { stage: 2, startId: 201, endId: 400 },
-  { stage: 3, startId: 401, endId: 600 },
-  { stage: 4, startId: 601, endId: 800 },
-  { stage: 5, startId: 801, endId: 1000 },
-  { stage: 6, startId: 1001, endId: 1200 },
-  { stage: 7, startId: 1201, endId: 1480 },
-  { stage: 8, startId: 1, endId: 1480 }
-];
+import { STAGES } from "../state/stages.js";
 
 export function getStageRange(stage) {
   return STAGES.find((s) => s.stage === stage) ?? STAGES[0];
@@ -70,6 +60,7 @@ function enforceNoConsecutiveRepeats(list, lastWordId = null) {
 
 function fillQuestionsFromPool(pool, count = 10, lastWordId = null) {
   if (!pool.length) {
+    const fallback = Array.from({ length: count }, () => randomWord());
     const noRepeat = preventImmediateRepeat(fallback, lastWordId);
     return enforceNoConsecutiveRepeats(noRepeat, lastWordId);
   }
