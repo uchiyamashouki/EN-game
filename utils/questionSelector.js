@@ -47,10 +47,31 @@ function preventImmediateRepeat(list, lastWordId) {
   return moved;
 }
 
+function enforceNoConsecutiveRepeats(list, lastWordId = null) {
+  if (!list.length) return list;
+
+  const arranged = [...list];
+  for (let i = 0; i < arranged.length; i += 1) {
+    const previousId = i === 0 ? lastWordId : arranged[i - 1]?.id;
+    if (!previousId || arranged[i]?.id !== previousId) continue;
+
+    const swapIndex = arranged.findIndex((candidate, index) => {
+      if (index <= i) return false;
+      return candidate.id !== previousId;
+    });
+
+    if (swapIndex > i) {
+      [arranged[i], arranged[swapIndex]] = [arranged[swapIndex], arranged[i]];
+    }
+  }
+
+  return arranged;
+}
+
 function fillQuestionsFromPool(pool, count = 10, lastWordId = null) {
   if (!pool.length) {
-    const fallback = Array.from({ length: count }, () => randomWord());
-    return preventImmediateRepeat(fallback, lastWordId);
+    const noRepeat = preventImmediateRepeat(fallback, lastWordId);
+    return enforceNoConsecutiveRepeats(noRepeat, lastWordId);
   }
   
   const out = [];
@@ -75,22 +96,37 @@ function fillQuestionsFromPool(pool, count = 10, lastWordId = null) {
     }
   }
 
-  return out;
+  return enforceNoConsecutiveRepeats(out, lastWordId);
 }
 
 function pick(pool, count = 10, lastWordId = null) {
   return fillQuestionsFromPool(pool, count, lastWordId);
 }
 
-function pickPrioritizedByAnswerCount(pool, state, count = 10) {
+function pickPrioritizedByAnswerCount(pool, state, count = 10, options = {}) {
+  const { unseenFirst = false } = options;
   if (!pool.length) {
-    return Array.from({ length: count }, () => randomWord());
+    const fallback = Array.from({ length: count }, () => randomWord());
+    return enforceNoConsecutiveRepeats(fallback, state?.lastQuestionWordId ?? null);
   }
 
   const stats = state?.wordStats ?? {};
   const prioritized = [...pool]
-    .map((word) => ({ word, total: stats[word.id]?.total ?? 0, tie: Math.random() }))
-    .sort((a, b) => (a.total - b.total) || (a.tie - b.tie))
+    .map((word) => {
+      const total = stats[word.id]?.total ?? 0;
+      return {
+        word,
+        total,
+        unseenRank: total === 0 ? 0 : 1,
+        tie: Math.random()
+      };
+    })
+    .sort((a, b) => {
+      if (unseenFirst) {
+        return (a.unseenRank - b.unseenRank) || (a.total - b.total) || (a.tie - b.tie);
+      }
+      return (a.total - b.total) || (a.tie - b.tie);
+    })
     .map(({ word }) => word);
 
   return fillQuestionsFromPool(prioritized, count, state?.lastQuestionWordId ?? null);
@@ -115,7 +151,7 @@ export function selectQuestionSet({ command, stage, state, isBoss = false }) {
   }
   
   if (command === "attack") {
-    return pickPrioritizedByAnswerCount(stageWords, state, 10);
+    return pickPrioritizedByAnswerCount(stageWords, state, 10, { unseenFirst: true });
   }
 
   return pick(stageWords, 10, lastWordId);
