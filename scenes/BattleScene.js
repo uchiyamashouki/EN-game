@@ -9,7 +9,7 @@ const ENEMIES = {
     { name: "ゴブリン", hp: 65, art: "👹", iconType: "goblin" },
     { name: "バット", hp: 50, art: "🦇", iconType: "bat" }
   ],
-  rare: { name: "デビル", hp: 60, art: "👿", attack: 50, iconType: "ghost" },
+  rare: { name: "ゴースト", hp: 60, art: "👻", attack: 50, iconType: "ghost" },
   boss: [
     { name: "語彙ドラゴン", hp: 130, art: "🐉", iconType: "dragon" }
   ]
@@ -27,6 +27,12 @@ const CRIT_MULTIPLIER = 2.2;
 
 function moneyByTurns(turns) {
   return Math.max(1, Math.min(15, 16 - turns));
+}
+
+function rewardMultiplier(enemy) {
+  if (enemy?.iconType === "ghost") return 3;
+  if (enemy?.iconType === "dragon") return 4;
+  return 1;
 }
 
 function dropItem() {
@@ -185,7 +191,8 @@ export class BattleScene {
     this.updateHud();
 
     if (this.state.enemyHp <= 0) {
-      const gain = moneyByTurns(this.state.turns);
+      const baseGain = moneyByTurns(this.state.turns);
+      const gain = baseGain * rewardMultiplier(this.enemy);
       this.state.money += gain;
       const item = dropItem();
       if (item) this.state.inventory.push(item);
