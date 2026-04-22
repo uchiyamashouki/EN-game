@@ -24,85 +24,37 @@ function randomWord() {
   return WORDS[Math.floor(Math.random() * WORDS.length)];
 }
 
-function preventImmediateRepeat(list, lastWordId) {
-  if (!list.length || !lastWordId || list[0]?.id !== lastWordId) {
-    return list;
-  }
-
-  const swapIndex = list.findIndex((word) => word.id !== lastWordId);
-  if (swapIndex <= 0) return list;
-
-  const moved = [...list];
-  [moved[0], moved[swapIndex]] = [moved[swapIndex], moved[0]];
-  return moved;
-}
-
-function enforceNoConsecutiveRepeats(list, lastWordId = null) {
-  if (!list.length) return list;
-
-  const arranged = [...list];
-  for (let i = 0; i < arranged.length; i += 1) {
-    const previousId = i === 0 ? lastWordId : arranged[i - 1]?.id;
-    if (!previousId || arranged[i]?.id !== previousId) continue;
-
-    const swapIndex = arranged.findIndex((candidate, index) => {
-      if (index <= i) return false;
-      return candidate.id !== previousId;
-    });
-
-    if (swapIndex > i) {
-      [arranged[i], arranged[swapIndex]] = [arranged[swapIndex], arranged[i]];
-    }
-  }
-
-  return arranged;
-}
-
-function fillQuestionsFromPool(pool, count = 10, lastWordId = null) {
+function fillQuestionsFromPool(pool, count = 10, options = {}) {
+  const { shuffleEachCycle = true } = options;
   if (!pool.length) {
-    const fallback = Array.from({ length: count }, () => randomWord());
-    const noRepeat = preventImmediateRepeat(fallback, lastWordId);
-    return enforceNoConsecutiveRepeats(noRepeat, lastWordId);
+    return Array.from({ length: count }, () => randomWord());
   }
   
   const out = [];
-  let prevId = lastWordId;
 
   while (out.length < count) {
-    const cycle = shuffle(pool);
+    const cycle = shuffleEachCycle ? shuffle(pool) : [...pool];
     for (const word of cycle) {
       if (out.length >= count) break;
-
-      if (word.id === prevId) {
-        const alternative = cycle.find((candidate) => candidate.id !== prevId && !out.includes(candidate));
-        if (alternative) {
-          out.push(alternative);
-          prevId = alternative.id;
-          continue;
-        }
-      }
-
       out.push(word);
-      prevId = word.id;
     }
   }
 
-  return enforceNoConsecutiveRepeats(out, lastWordId);
+  return out;
 }
 
-function pick(pool, count = 10, lastWordId = null) {
-  return fillQuestionsFromPool(pool, count, lastWordId);
+function pick(pool, count = 10) {
+  return fillQuestionsFromPool(pool, count);
 }
 
 function pickPrioritizedByAnswerCount(pool, state, count = 10, options = {}) {
   const { unseenFirst = false } = options;
   if (!pool.length) {
-    const fallback = Array.from({ length: count }, () => randomWord());
-    return enforceNoConsecutiveRepeats(fallback, state?.lastQuestionWordId ?? null);
+    return Array.from({ length: count }, () => randomWord());
   }
 
   const stats = state?.wordStats ?? {};
-  const prioritized = [...pool]
+  const prioritizedMeta = [...pool]
     .map((word) => {
       const total = stats[word.id]?.total ?? 0;
       return {
@@ -117,20 +69,33 @@ function pickPrioritizedByAnswerCount(pool, state, count = 10, options = {}) {
         return (a.unseenRank - b.unseenRank) || (a.total - b.total) || (a.tie - b.tie);
       }
       return (a.total - b.total) || (a.tie - b.tie);
-    })
-    .map(({ word }) => word);
+    });
 
-  return fillQuestionsFromPool(prioritized, count, state?.lastQuestionWordId ?? null);
+  const grouped = new Map();
+  for (const entry of prioritizedMeta) {
+    const rank = unseenFirst ? `${entry.unseenRank}:${entry.total}` : String(entry.total);
+    const current = grouped.get(rank) ?? [];
+    current.push(entry.word);
+    grouped.set(rank, current);
+  }
+
+  const cycles = [];
+  for (const key of grouped.keys()) {
+    const words = grouped.get(key) ?? [];
+    cycles.push(shuffle(words));
+  }
+
+  const prioritized = cycles.flat();
+  return fillQuestionsFromPool(prioritized, count, { shuffleEachCycle: false });
 }
 
 export function selectQuestionSet({ command, stage, state, isBoss = false }) {
   const stageWords = wordsForStage(stage);
   const { strong, weak, unseen } = classifyWords(stageWords, state);
-  const lastWordId = state?.lastQuestionWordId ?? null;
   
   if (isBoss) {
     const prioritized = [...weak].sort((a, b) => a.accuracy - b.accuracy);
-    return pick(prioritized.length ? prioritized : stageWords, 10, lastWordId);
+    return pick(prioritized.length ? prioritized : stageWords, 10);
   }
 
   if (command === "heal") {
@@ -145,5 +110,5 @@ export function selectQuestionSet({ command, stage, state, isBoss = false }) {
     return pickPrioritizedByAnswerCount(stageWords, state, 10, { unseenFirst: true });
   }
 
-  return pick(stageWords, 10, lastWordId);
+  return pick(stageWords, 10);
 }
